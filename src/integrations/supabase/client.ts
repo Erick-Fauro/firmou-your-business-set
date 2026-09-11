@@ -31,7 +31,7 @@ function createSupabaseFetch(supabaseKey: string): typeof fetch {
 function createSupabaseClient() {
   // Use import.meta.env for client-side (Vite build-time replacement)
   // Fall back to process.env for SSR (server-side rendering)
-  const SUPABASE_URL = 'https://rjaasaaljjuwkfuebfqh.supabase.co';
+  const SUPABASE_URL = 'https://rjaasaalijuwkfuebfgh.supabase.co';
 
 const SUPABASE_PUBLISHABLE_KEY =
   'sb_publishable_0iY1Mfj28IMBBaHDHVToyA_NuFxS5v1';
