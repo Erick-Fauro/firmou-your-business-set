@@ -179,6 +179,9 @@ function ProfessionalsPage() {
                       {professional.active ? "Ativo" : "Inativo"}
                     </span>
                   </div>
+                  {professional.phone ? (
+                    <p className="mt-1 text-sm text-muted-foreground">{professional.phone}</p>
+                  ) : null}
                   {professional.service_ids.length > 0 ? (
                     <div className="mt-3 flex flex-wrap gap-1.5">
                       {professional.service_ids.map((serviceId) => (
