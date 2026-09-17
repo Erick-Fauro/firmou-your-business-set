@@ -304,6 +304,7 @@ function ProfessionalFormDialog({
     mutationFn: async () => {
       const input = {
         name: name.trim(),
+        phone: phone.trim() || null,
         active,
         serviceIds: [...new Set(selected.filter((id) => allowedIds.has(id)))],
       };
