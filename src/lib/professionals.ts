@@ -58,6 +58,7 @@ export async function listProfessionals(businessId: string): Promise<Professiona
     id: String(row["id"]),
     business_id: String(row["business_id"]),
     name: String(row["name"] ?? ""),
+    phone: row["phone"] ? String(row["phone"]) : null,
     active: row["active"] !== false,
     created_at: String(row["created_at"] ?? ""),
     service_ids: byProfessional.get(String(row["id"])) ?? [],
