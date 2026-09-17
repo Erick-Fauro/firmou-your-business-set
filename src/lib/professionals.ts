@@ -97,13 +97,15 @@ async function syncServices(professionalId: string, serviceIds: string[]) {
   }
 }
 
-export async function createProfessional(
-  businessId: string,
-  input: { name: string; active: boolean; serviceIds: string[] },
-) {
+export async function createProfessional(businessId: string, input: ProfessionalInput) {
   const { data, error } = await db
     .from("professionals")
-    .insert({ business_id: businessId, name: input.name, active: input.active })
+    .insert({
+      business_id: businessId,
+      name: input.name,
+      phone: input.phone,
+      active: input.active,
+    })
     .select("id")
     .single();
   if (error) throw error;
@@ -111,13 +113,10 @@ export async function createProfessional(
   await syncServices(String((data as { id: string }).id), input.serviceIds);
 }
 
-export async function updateProfessional(
-  id: string,
-  input: { name: string; active: boolean; serviceIds: string[] },
-) {
+export async function updateProfessional(id: string, input: ProfessionalInput) {
   const { error } = await db
     .from("professionals")
-    .update({ name: input.name, active: input.active })
+    .update({ name: input.name, phone: input.phone, active: input.active })
     .eq("id", id);
   if (error) throw error;
 
