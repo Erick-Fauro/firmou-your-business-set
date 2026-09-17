@@ -355,6 +355,18 @@ function ProfessionalFormDialog({
           </div>
 
           <div className="space-y-2">
+            <Label htmlFor="professional-phone">Telefone (opcional)</Label>
+            <Input
+              id="professional-phone"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="(11) 99999-0000"
+              inputMode="tel"
+            />
+          </div>
+
+
+          <div className="space-y-2">
             <Label>Serviços realizados</Label>
             {services.length === 0 ? (
               <p className="text-sm text-muted-foreground">
