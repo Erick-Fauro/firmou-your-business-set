@@ -293,6 +293,7 @@ function ProfessionalFormDialog({
   onSaved: () => void;
 }) {
   const [name, setName] = useState(professional?.name ?? "");
+  const [phone, setPhone] = useState(professional?.phone ?? "");
   const [active, setActive] = useState(professional?.active ?? true);
   const [selected, setSelected] = useState<string[]>(professional?.service_ids ?? []);
   const [error, setError] = useState<string | null>(null);
