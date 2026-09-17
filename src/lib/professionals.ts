@@ -14,9 +14,17 @@ export type Professional = {
   id: string;
   business_id: string;
   name: string;
+  phone: string | null;
   active: boolean;
   created_at: string;
   service_ids: string[];
+};
+
+export type ProfessionalInput = {
+  name: string;
+  phone: string | null;
+  active: boolean;
+  serviceIds: string[];
 };
 
 export async function listProfessionals(businessId: string): Promise<Professional[]> {
@@ -50,6 +58,7 @@ export async function listProfessionals(businessId: string): Promise<Professiona
     id: String(row["id"]),
     business_id: String(row["business_id"]),
     name: String(row["name"] ?? ""),
+    phone: row["phone"] ? String(row["phone"]) : null,
     active: row["active"] !== false,
     created_at: String(row["created_at"] ?? ""),
     service_ids: byProfessional.get(String(row["id"])) ?? [],
@@ -88,13 +97,15 @@ async function syncServices(professionalId: string, serviceIds: string[]) {
   }
 }
 
-export async function createProfessional(
-  businessId: string,
-  input: { name: string; active: boolean; serviceIds: string[] },
-) {
+export async function createProfessional(businessId: string, input: ProfessionalInput) {
   const { data, error } = await db
     .from("professionals")
-    .insert({ business_id: businessId, name: input.name, active: input.active })
+    .insert({
+      business_id: businessId,
+      name: input.name,
+      phone: input.phone,
+      active: input.active,
+    })
     .select("id")
     .single();
   if (error) throw error;
@@ -102,13 +113,10 @@ export async function createProfessional(
   await syncServices(String((data as { id: string }).id), input.serviceIds);
 }
 
-export async function updateProfessional(
-  id: string,
-  input: { name: string; active: boolean; serviceIds: string[] },
-) {
+export async function updateProfessional(id: string, input: ProfessionalInput) {
   const { error } = await db
     .from("professionals")
-    .update({ name: input.name, active: input.active })
+    .update({ name: input.name, phone: input.phone, active: input.active })
     .eq("id", id);
   if (error) throw error;
 

@@ -179,6 +179,9 @@ function ProfessionalsPage() {
                       {professional.active ? "Ativo" : "Inativo"}
                     </span>
                   </div>
+                  {professional.phone ? (
+                    <p className="mt-1 text-sm text-muted-foreground">{professional.phone}</p>
+                  ) : null}
                   {professional.service_ids.length > 0 ? (
                     <div className="mt-3 flex flex-wrap gap-1.5">
                       {professional.service_ids.map((serviceId) => (
@@ -293,6 +296,7 @@ function ProfessionalFormDialog({
   onSaved: () => void;
 }) {
   const [name, setName] = useState(professional?.name ?? "");
+  const [phone, setPhone] = useState(professional?.phone ?? "");
   const [active, setActive] = useState(professional?.active ?? true);
   const [selected, setSelected] = useState<string[]>(professional?.service_ids ?? []);
   const [error, setError] = useState<string | null>(null);
@@ -303,6 +307,7 @@ function ProfessionalFormDialog({
     mutationFn: async () => {
       const input = {
         name: name.trim(),
+        phone: phone.trim() || null,
         active,
         serviceIds: [...new Set(selected.filter((id) => allowedIds.has(id)))],
       };
@@ -351,6 +356,18 @@ function ProfessionalFormDialog({
               placeholder="Ana Souza"
             />
           </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="professional-phone">Telefone (opcional)</Label>
+            <Input
+              id="professional-phone"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="(11) 99999-0000"
+              inputMode="tel"
+            />
+          </div>
+
 
           <div className="space-y-2">
             <Label>Serviços realizados</Label>
