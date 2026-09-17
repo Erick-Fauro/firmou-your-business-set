@@ -14,9 +14,17 @@ export type Professional = {
   id: string;
   business_id: string;
   name: string;
+  phone: string | null;
   active: boolean;
   created_at: string;
   service_ids: string[];
+};
+
+export type ProfessionalInput = {
+  name: string;
+  phone: string | null;
+  active: boolean;
+  serviceIds: string[];
 };
 
 export async function listProfessionals(businessId: string): Promise<Professional[]> {
