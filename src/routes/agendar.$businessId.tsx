@@ -162,7 +162,7 @@ function LoadingState() {
       <div className="h-4 w-1/3 rounded bg-muted" />
       <div className="mt-8 h-24 rounded-xl bg-muted" />
       <div className="h-24 rounded-xl bg-muted" />
-ed    </div>
+    </div>
   );
 }
 
