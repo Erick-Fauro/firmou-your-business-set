@@ -113,7 +113,10 @@ function SettingsPage() {
 
   function updateDay(dayOfWeek: number, patch: Partial<DayState>) {
     setFeedback(null);
-    setDays((prev) => ({ ...prev, [dayOfWeek]: { ...prev[dayOfWeek], ...patch } }));
+    setDays((prev) => ({
+      ...prev,
+      [dayOfWeek]: { ...(prev[dayOfWeek] ?? EMPTY_DAY), ...patch },
+    }));
   }
 
   function handleSave() {
