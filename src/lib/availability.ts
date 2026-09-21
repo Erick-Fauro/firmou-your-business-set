@@ -76,6 +76,21 @@ export function buildCalendar(
   });
 }
 
+/** "YYYY-MM-DD" + "HH:MM" -> ISO string with the visitor's local UTC offset. */
+export function toLocalIso(dateKey: string, time: string): string {
+  const [h, m] = time.split(":").map(Number);
+  const date = parseDateKey(dateKey);
+  date.setHours(h ?? 0, m ?? 0, 0, 0);
+  const offset = -date.getTimezoneOffset();
+  const sign = offset >= 0 ? "+" : "-";
+  const abs = Math.abs(offset);
+  const pad = (v: number) => String(v).padStart(2, "0");
+  return (
+    `${dateKey}T${pad(date.getHours())}:${pad(date.getMinutes())}:00` +
+    `${sign}${pad(Math.floor(abs / 60))}:${pad(abs % 60)}`
+  );
+}
+
 function timeToMinutes(time: string): number {
   const [h, m] = time.split(":").map(Number);
   return (h ?? 0) * 60 + (m ?? 0);
