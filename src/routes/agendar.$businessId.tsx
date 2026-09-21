@@ -50,7 +50,7 @@ export const Route = createFileRoute("/agendar/$businessId")({
   component: PublicBookingPage,
 });
 
-type Step = "service" | "professional" | "schedule";
+type Step = "service" | "professional" | "schedule" | "customer" | "review" | "success";
 
 function PublicBookingPage() {
   const { businessId } = Route.useParams();
@@ -62,6 +62,10 @@ function PublicBookingPage() {
   );
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
+  const [customerName, setCustomerName] = useState("");
+  const [customerPhone, setCustomerPhone] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const businessQuery = useQuery({
     queryKey: ["public-business", businessId],
