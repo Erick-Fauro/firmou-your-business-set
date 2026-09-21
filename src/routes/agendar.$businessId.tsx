@@ -1,23 +1,33 @@
 import { useEffect, useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Loader2 } from "lucide-react";
 
 import { Logo } from "@/components/brand/Logo";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { ServiceCard } from "@/components/booking/ServiceCard";
 import { ProfessionalCard } from "@/components/booking/ProfessionalCard";
 import { DateStrip } from "@/components/booking/DateStrip";
 import { TimeSlotGrid } from "@/components/booking/TimeSlotGrid";
 import { formatDuration, formatPrice } from "@/lib/services";
 import {
+  BookingConflictError,
+  createPublicAppointment,
   fetchActiveProfessionals,
   fetchActiveServices,
   fetchBookedSlots,
   fetchPublicBusiness,
   fetchPublicBusinessHours,
 } from "@/lib/public-booking";
-import { buildCalendar, buildTimeSlots, formatFullDate } from "@/lib/availability";
+import { isValidPhone, maskPhone } from "@/lib/phone";
+import {
+  buildCalendar,
+  buildTimeSlots,
+  formatFullDate,
+  toLocalIso,
+} from "@/lib/availability";
 
 export const Route = createFileRoute("/agendar/$businessId")({
   ssr: false,
