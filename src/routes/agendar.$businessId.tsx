@@ -1,23 +1,33 @@
 import { useEffect, useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Loader2 } from "lucide-react";
 
 import { Logo } from "@/components/brand/Logo";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { ServiceCard } from "@/components/booking/ServiceCard";
 import { ProfessionalCard } from "@/components/booking/ProfessionalCard";
 import { DateStrip } from "@/components/booking/DateStrip";
 import { TimeSlotGrid } from "@/components/booking/TimeSlotGrid";
 import { formatDuration, formatPrice } from "@/lib/services";
 import {
+  BookingConflictError,
+  createPublicAppointment,
   fetchActiveProfessionals,
   fetchActiveServices,
   fetchBookedSlots,
   fetchPublicBusiness,
   fetchPublicBusinessHours,
 } from "@/lib/public-booking";
-import { buildCalendar, buildTimeSlots, formatFullDate } from "@/lib/availability";
+import { isValidPhone, maskPhone } from "@/lib/phone";
+import {
+  buildCalendar,
+  buildTimeSlots,
+  formatFullDate,
+  toLocalIso,
+} from "@/lib/availability";
 
 export const Route = createFileRoute("/agendar/$businessId")({
   ssr: false,
@@ -40,7 +50,7 @@ export const Route = createFileRoute("/agendar/$businessId")({
   component: PublicBookingPage,
 });
 
-type Step = "service" | "professional" | "schedule";
+type Step = "service" | "professional" | "schedule" | "customer" | "review" | "success";
 
 function PublicBookingPage() {
   const { businessId } = Route.useParams();
@@ -52,6 +62,10 @@ function PublicBookingPage() {
   );
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
+  const [customerName, setCustomerName] = useState("");
+  const [customerPhone, setCustomerPhone] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const businessQuery = useQuery({
     queryKey: ["public-business", businessId],
@@ -148,14 +162,19 @@ function PublicBookingPage() {
     );
   }
 
+  const customerValid = customerName.trim().length > 0 && isValidPhone(customerPhone);
+
   const canContinue =
     step === "service"
       ? !!selectedServiceId
       : step === "professional"
         ? !!selectedProfessionalId
-        : !!selectedTime;
+        : step === "schedule"
+          ? !!selectedTime
+          : customerValid;
 
   function goBack() {
+    setSubmitError(null);
     if (step === "professional") {
       setStep("service");
       return;
@@ -164,7 +183,13 @@ function PublicBookingPage() {
       setSelectedDate(null);
       setSelectedTime(null);
       setStep("professional");
+      return;
     }
+    if (step === "customer") {
+      setStep("schedule");
+      return;
+    }
+    if (step === "review") setStep("customer");
   }
 
   function goNext() {
@@ -172,7 +197,95 @@ function PublicBookingPage() {
       setStep("professional");
       return;
     }
-    if (step === "professional") setStep("schedule");
+    if (step === "professional") {
+      setStep("schedule");
+      return;
+    }
+    if (step === "schedule") {
+      setStep("customer");
+      return;
+    }
+    if (step === "customer" && customerValid) setStep("review");
+  }
+
+  async function confirmBooking() {
+    if (
+      submitting ||
+      !selectedServiceId ||
+      !selectedProfessionalId ||
+      !selectedDate ||
+      !selectedTime ||
+      !customerValid
+    ) {
+      return;
+    }
+
+    setSubmitting(true);
+    setSubmitError(null);
+    try {
+      await createPublicAppointment({
+        businessId,
+        professionalId: selectedProfessionalId,
+        serviceId: selectedServiceId,
+        customerName: customerName.trim(),
+        customerPhone,
+        startTime: toLocalIso(selectedDate, selectedTime),
+      });
+      setStep("success");
+    } catch (error) {
+      if (error instanceof BookingConflictError) {
+        setSelectedTime(null);
+        setSubmitError(
+          "Esse horário acabou de ficar indisponível. Escolha outro horário.",
+        );
+        await bookedQuery.refetch();
+        setStep("schedule");
+      } else {
+        setSubmitError(
+          "Não foi possível confirmar seu agendamento. Tente novamente.",
+        );
+      }
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  const summaryServiceLabel = selectedService
+    ? `${selectedService.name} · ${formatDuration(
+        selectedService.duration_minutes,
+      )} · ${formatPrice(Number(selectedService.price))}`
+    : null;
+  const summaryDateLabel = selectedDate
+    ? `${formatFullDate(selectedDate)}${selectedTime ? ` · ${selectedTime}` : ""}`
+    : null;
+
+  if (step === "success") {
+    return (
+      <PageShell>
+        <div className="mt-6 rounded-xl border border-border bg-card p-8 text-center">
+          <CheckCircle2 className="mx-auto size-10 text-accent" />
+          <h1 className="mt-4 font-display text-2xl text-foreground">
+            Agendamento confirmado!
+          </h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Seu horário está reservado.
+          </p>
+        </div>
+
+        <section className="mt-6 rounded-xl border border-border bg-card p-4">
+          <dl className="space-y-2 text-sm">
+            <SummaryRow label="Local" value={business.name} />
+            <SummaryRow label="Serviço" value={selectedService?.name ?? null} />
+            <SummaryRow label="Profissional" value={selectedProfessional?.name ?? null} />
+            <SummaryRow
+              label="Data"
+              value={selectedDate ? formatFullDate(selectedDate) : null}
+            />
+            <SummaryRow label="Horário" value={selectedTime} />
+          </dl>
+        </section>
+      </PageShell>
+    );
   }
 
   return (
