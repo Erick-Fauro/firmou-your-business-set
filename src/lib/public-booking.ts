@@ -120,3 +120,32 @@ export async function fetchBookedSlots(
     end_time: String(row["end_time"]),
   }));
 }
+
+export class BookingConflictError extends Error {}
+
+const CONFLICT_PATTERN = /indispon|conflit|ocupad|já\s|sobrepos|reservad/i;
+
+export async function createPublicAppointment(input: {
+  businessId: string;
+  professionalId: string;
+  serviceId: string;
+  customerName: string;
+  customerPhone: string;
+  /** ISO string with timezone offset */
+  startTime: string;
+}): Promise<void> {
+  const { error } = await db.rpc("create_public_appointment", {
+    p_business_id: input.businessId,
+    p_professional_id: input.professionalId,
+    p_service_id: input.serviceId,
+    p_customer_name: input.customerName,
+    p_customer_phone: input.customerPhone,
+    p_start_time: input.startTime,
+  });
+
+  if (error) {
+    const message = String((error as { message?: string }).message ?? "");
+    if (CONFLICT_PATTERN.test(message)) throw new BookingConflictError(message);
+    throw new Error("booking_failed");
+  }
+}
