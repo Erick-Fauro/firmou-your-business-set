@@ -1,4 +1,4 @@
-# Firmou: Your Business, Set
+# Firmou
 
 Crie a primeira versão da aplicação web responsiva "Firmou".
 
